@@ -39,7 +39,7 @@ make BugTest/code.hex > /dev/null 2>&1
 # Run simulation
 echo "Running simulation..."
 cd "$RSD_ROOT/Processor/Src"
-make -f Makefile.verilator.mk run > /dev/null 2>&1
+make -f Makefile.verilator.incremental.mk run > /dev/null 2>&1
 
 # Extract register values from reg.out.hex
 echo "Extracting register values..."
