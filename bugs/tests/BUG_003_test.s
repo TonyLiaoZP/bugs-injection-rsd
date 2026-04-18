@@ -1,6 +1,6 @@
 // BUG_003 Test: Store-to-Load Forwarding Shift Error
-// Tests that store-to-load forwarding correctly shifts data based on byte offset
-// Bug uses *4 instead of *8 for bit shift, causing misaligned data
+// Simple test with back-to-back store/load at byte offsets
+// Bug uses *4 instead of *8 for bit shift
 
 #include "../rsd-asm-macros.h"
 
@@ -12,41 +12,27 @@
     .type     main, @function
 
 main:
-    li      a7, 0           // Result accumulator
-    la      t0, test_data   // Base address
+    la      t0, test_data
 
-    // Test 1: Store byte, load byte (offset 0)
-    li      t1, 0x42
-    sb      t1, 0(t0)       // Store 0x42 at offset 0
-    lb      t2, 0(t0)       // Load from same location
-    // Without bug: t2 = 0x42
-    // With bug: t2 might be shifted incorrectly
-    add     a7, a7, t2      // a7 = 0x42
+    // Test 1: Store word, immediate load byte at offset 1
+    li      t1, 0x11223344
+    sw      t1, 0(t0)
+    lb      a1, 1(t0)       // Should get 0x33 (byte 1)
+                            // With bug: shift by 1*4=4 instead of 1*8=8
 
-    // Test 2: Store byte at offset 1, load byte
-    li      t1, 0x37
-    sb      t1, 1(t0)       // Store 0x37 at offset 1
-    lb      t2, 1(t0)       // Load from offset 1
-    // Without bug: t2 = 0x37
-    // With bug: shift by 4 bits instead of 8, gets wrong data
-    add     a7, a7, t2      // a7 = 0x42 + 0x37 = 0x79
+    // Test 2: Store word, immediate load byte at offset 2
+    li      t1, 0x55667788
+    sw      t1, 4(t0)
+    lb      a2, 6(t0)       // Should get 0x77 (byte 2)
+                            // With bug: shift by 2*4=8 instead of 2*8=16
 
-    // Test 3: Store halfword at offset 2, load halfword
-    li      t1, 0x1234
-    sh      t1, 2(t0)       // Store 0x1234 at offset 2
-    lh      t2, 2(t0)       // Load from offset 2
-    // Without bug: t2 = 0x1234
-    // With bug: incorrect shift causes wrong value
-    add     a7, a7, t2      // a7 = 0x79 + 0x1234 = 0x12AD
+    // Test 3: Store word, immediate load byte at offset 3
+    li      t1, 0x99AABBCC
+    sw      t1, 8(t0)
+    lb      a3, 11(t0)      // Should get 0x99 (byte 3)
+                            // With bug: shift by 3*4=12 instead of 3*8=24
 
-    // Test 4: Store word, load byte at different offsets
-    li      t1, 0xAABBCCDD
-    sw      t1, 4(t0)       // Store full word
-    lb      t2, 4(t0)       // Load byte 0 (should be 0xDD)
-    lb      t3, 5(t0)       // Load byte 1 (should be 0xCC)
-
-    // Final result: a7 should be 0x12AD without bug
-    li      a7, 1           // Success marker
+    li      a7, 1
 
 end:
 end_loop:
@@ -55,4 +41,4 @@ end_loop:
     .data
     .align 4
 test_data:
-    .space 64               // Reserve 64 bytes for test
+    .space 64

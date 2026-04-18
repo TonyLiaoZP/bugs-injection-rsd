@@ -111,9 +111,10 @@ $(VERILATOR_GEN_STAMP): $(DEPS_RTL) Makefiles/CoreSources.inc.mk Makefile.verila
 gen: $(VERILATOR_GEN_STAMP)
 
 build: gen
-	$(MAKE) -C $(LIBRARY_WORK_RTL) -f $(VERILATED_TOP_MODULE_NAME).mk \
+	cd $(LIBRARY_WORK_RTL); \
 		VPATH=../../../Src \
 		CXXFLAGS="$(VERILATOR_TARGET_CXXFLAGS)" \
+		$(MAKE) -f $(VERILATED_TOP_MODULE_NAME).mk \
 		$(VERILATOR_SUBMAKE_ARGS)
 	@echo "==== Incremental Build Successful ===="
 
