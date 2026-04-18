@@ -131,8 +131,11 @@ class BugInjector:
         backup_files = list(self.backup_dir.glob("*.sv"))
 
         for backup_file in backup_files:
-            # Find original file location
-            original_candidates = list(self.rsd_root.rglob(backup_file.name))
+            # Find original file location (exclude backup directory itself)
+            original_candidates = [
+                p for p in self.rsd_root.rglob(backup_file.name)
+                if not str(p).startswith(str(self.backup_dir))
+            ]
             if not original_candidates:
                 print(f"  WARNING: Could not find original location for {backup_file.name}")
                 continue
