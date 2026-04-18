@@ -12,6 +12,7 @@ echo ""
 
 # List of bug tests
 TESTS=(
+    "BUG_001_test.s"
     "BUG_002_test.s"
     "BUG_003_test.s"
     "BUG_004_test.s"
