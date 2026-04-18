@@ -100,3 +100,6 @@ hs*.dmp
 /.project
 /.history
 
+# Bug injection backups
+.bug_backups/
+

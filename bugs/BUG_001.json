@@ -1,0 +1,16 @@
+{
+  "id": "BUG_001",
+  "name": "EXAMPLE_BUG",
+  "category": "Pipeline",
+  "description": "Example bug for demonstration purposes",
+  "severity": "Medium",
+  "file": "Processor/Src/IntegerExecutionStage.sv",
+  "patches": [
+    {
+      "line": 100,
+      "original": "    // Example: This is a placeholder for demonstration",
+      "buggy": "    // Example: This is a placeholder for demonstration (BUGGY VERSION)"
+    }
+  ],
+  "notes": "This is an example bug definition. Replace with actual bug when ready."
+}
