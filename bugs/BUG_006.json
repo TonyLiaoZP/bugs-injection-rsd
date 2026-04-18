@@ -1,0 +1,16 @@
+{
+  "id": "BUG_006",
+  "name": "COMMIT_BOUNDARY_OFF_BY_ONE",
+  "category": "Commit",
+  "description": "Off-by-one error in instruction boundary detection during commit",
+  "severity": "High",
+  "file": "Processor/Src/Pipeline/CommitStage.sv",
+  "patches": [
+    {
+      "line": 32,
+      "original": "        if (i < finishedOpNum && last[i]) begin",
+      "buggy": "        if (i <= finishedOpNum && last[i]) begin"
+    }
+  ],
+  "notes": "Changes < to <=, allowing commit logic to examine one entry beyond valid range. Can cause incorrect instruction boundary detection and commit more or fewer ops than intended, leading to architectural state corruption."
+}

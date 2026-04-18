@@ -1,0 +1,16 @@
+{
+  "id": "BUG_004",
+  "name": "READY_BIT_BYPASS_RACE",
+  "category": "Scheduler",
+  "description": "Missing ready bit bypass for same-cycle wakeup and dispatch causes false dependency",
+  "severity": "Medium",
+  "file": "Processor/Src/Scheduler/ReadyBitTable.sv",
+  "patches": [
+    {
+      "line": 117,
+      "original": "                    for (int k = 0; k < WAKEUP_WIDTH; k++) begin",
+      "buggy": "                    for (int k = 0; k < WAKEUP_WIDTH-1; k++) begin"
+    }
+  ],
+  "notes": "Reduces wakeup bypass loop by 1, missing the last wakeup port. Instructions dispatched in the same cycle as the last wakeup port fires will incorrectly see source as not ready, causing unnecessary stalls."
+}

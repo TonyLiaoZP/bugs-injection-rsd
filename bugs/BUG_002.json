@@ -1,0 +1,21 @@
+{
+  "id": "BUG_002",
+  "name": "BYPASS_PRIORITY_INVERSION",
+  "category": "Bypass",
+  "description": "Incorrect bypass stage priority causes stale data forwarding when multiple stages produce the same register",
+  "severity": "High",
+  "file": "Processor/Src/RegisterFile/BypassNetwork.sv",
+  "patches": [
+    {
+      "line": 57,
+      "original": "        if( sel.stg == BYPASS_STAGE_INT_EX )",
+      "buggy": "        if( sel.stg == BYPASS_STAGE_INT_WB )"
+    },
+    {
+      "line": 59,
+      "original": "        else   if( sel.stg == BYPASS_STAGE_INT_WB )",
+      "buggy": "        else   if( sel.stg == BYPASS_STAGE_INT_EX )"
+    }
+  ],
+  "notes": "Swaps EX and WB stage priority in bypass selection. When both stages have valid data for the same register, the older (WB) data is incorrectly forwarded instead of the newer (EX) data, causing data hazards."
+}

@@ -1,16 +1,15 @@
 {
   "id": "BUG_001",
-  "name": "EXAMPLE_BUG",
-  "category": "Pipeline",
-  "description": "Example bug for demonstration purposes",
-  "severity": "Medium",
-  "file": "Processor/Src/IntegerExecutionStage.sv",
+  "name": "ALU_SUB_BUG",
+  "category": "IntegerExecutionStage",
+  "description": "Missing add one to the result of subtraction",
+  "severity": "High",
+  "file": "Processor/Src/ExecUnit/IntALU.sv",
   "patches": [
     {
-      "line": 100,
-      "original": "    // Example: This is a placeholder for demonstration",
-      "buggy": "    // Example: This is a placeholder for demonstration (BUGGY VERSION)"
+      "line": 121,
+      "original": "    AC_SUB: `Add( opA, FALSE, opB, TRUE, 1  )    ",
+      "buggy": "    AC_SUB: `Add( opA, FALSE, opB, FALSE, 0 )    "
     }
-  ],
-  "notes": "This is an example bug definition. Replace with actual bug when ready."
+  ]
 }

@@ -6,7 +6,14 @@ This file catalogs all bugs available for injection into the RSD processor.
 
 | ID | Name | Category | File | Description | Severity |
 |----|------|----------|------|-------------|----------|
-| BUG_001 | EXAMPLE_BUG | Pipeline | IntegerExecutionStage.sv | Example bug for demonstration | Medium |
+| BUG_001 | ALU_SUB_BUG | IntegerExecutionStage | IntALU.sv | Missing add one to subtraction result | High |
+| BUG_002 | BYPASS_PRIORITY_INVERSION | Bypass | BypassNetwork.sv | Incorrect bypass stage priority causes stale data forwarding | High |
+| BUG_003 | STORE_FORWARD_SHIFT_ERROR | Memory | LoadStoreUnit.sv | Wrong bit shift in store-to-load forwarding | Critical |
+| BUG_004 | READY_BIT_BYPASS_RACE | Scheduler | ReadyBitTable.sv | Missing ready bit bypass for last wakeup port | Medium |
+| BUG_005 | RECOVERY_PHASE_SKIP | Control | RecoveryManager.sv | Inverted reset condition breaks recovery state machine | Critical |
+| BUG_006 | COMMIT_BOUNDARY_OFF_BY_ONE | Commit | CommitStage.sv | Off-by-one in instruction boundary detection | High |
+| BUG_007 | STORE_QUEUE_WRAP_AROUND | Memory | StoreQueue.sv | Incorrect pointer wrap-around calculation | Medium |
+| BUG_008 | BYPASS_CLEAR_ON_STALL | Bypass | BypassNetwork.sv | Bypass data incorrectly cleared during stalls | High |
 
 ## Categories
 

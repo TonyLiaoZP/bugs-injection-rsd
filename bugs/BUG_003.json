@@ -1,0 +1,16 @@
+{
+  "id": "BUG_003",
+  "name": "STORE_FORWARD_SHIFT_ERROR",
+  "category": "Memory",
+  "description": "Incorrect bit shift calculation in store-to-load forwarding causes wrong data alignment",
+  "severity": "Critical",
+  "file": "Processor/Src/LoadStoreUnit/LoadStoreUnit.sv",
+  "patches": [
+    {
+      "line": 31,
+      "original": "        data = srcLine >> (addr[LSQ_BLOCK_BYTE_WIDTH_BIT_SIZE-1:0] * 8);",
+      "buggy": "        data = srcLine >> (addr[LSQ_BLOCK_BYTE_WIDTH_BIT_SIZE-1:0] * 4);"
+    }
+  ],
+  "notes": "Changes shift amount from *8 (bits per byte) to *4, causing misaligned data when forwarding from store queue to load. Manifests as corrupted load values when loads depend on recent stores."
+}
