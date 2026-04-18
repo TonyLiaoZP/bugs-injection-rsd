@@ -17,7 +17,7 @@ echo "Generating cfg.xml for $TEST_NAME..."
 
 # Paths
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RSD_ROOT="$SCRIPT_DIR/../.."
+RSD_ROOT="$SCRIPT_DIR/.."
 BUGTEST_DIR="$RSD_ROOT/Processor/Src/Verification/TestCode/Asm/BugTest"
 TEST_SRC="$SCRIPT_DIR/tests/$TEST_FILE"
 
@@ -69,9 +69,9 @@ while IFS= read -r line; do
 
     if [ -n "$line" ]; then
         if [ $REG_NUM -lt 32 ]; then
-            printf "      <R%d>0x%s</R%d>\n" $REG_NUM "$line" $REG_NUM >> "$CFG_FILE"
+            printf "      <R%d>%s</R%d>\n" $REG_NUM "$line" $REG_NUM >> "$CFG_FILE"
         elif [ $REG_NUM -eq 32 ]; then
-            printf "      <PC>0x%s</PC>\n" "$line" >> "$CFG_FILE"
+            printf "      <PC>%s</PC>\n" "$line" >> "$CFG_FILE"
         fi
         REG_NUM=$((REG_NUM + 1))
     fi

@@ -48,7 +48,7 @@ make BugTest/code.hex
 # Run test with RunTest.py
 echo "Running test with RunTest.py..."
 cd "$RSD_ROOT/Processor/Src"
-python3 "$RUN_TEST" --test BugTest --simulator verilator
+python3 "$RUN_TEST" "$BUGTEST_DIR" --simulator verilator
 
 echo ""
 echo "Test completed!"
