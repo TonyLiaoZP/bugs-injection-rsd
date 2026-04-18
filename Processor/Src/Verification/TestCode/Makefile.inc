@@ -74,8 +74,6 @@ LIBGCC = \
 	-L$(RSD_GCC_NATIVE)/../lib/gcc/${RSD_GCC_NAME}/$(RSD_GCC_VERSION)/rv32imf/ilp32f \
 	-lgcc \
 	-lgcov \
-	-L$(RSD_GCC_NATIVE)/../${RSD_GCC_NAME}/lib/rv32imf/ilp32f \
-	-lm
 
 
 
