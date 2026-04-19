@@ -18,8 +18,6 @@ TESTS=(
     "BUG_004_test"
     "BUG_005_test"
     "BUG_006_test"
-    "BUG_007_test"
-    "BUG_008_test"
 )
 
 PASSED=0

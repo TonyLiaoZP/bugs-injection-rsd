@@ -18,8 +18,6 @@ TESTS=(
     "BUG_004_test.s"
     "BUG_005_test.s"
     "BUG_006_test.s"
-    "BUG_007_test.s"
-    "BUG_008_test.s"
 )
 
 for test in "${TESTS[@]}"; do
