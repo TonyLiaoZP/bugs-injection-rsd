@@ -24,7 +24,7 @@ class BugInjector:
 
     def load_bug_definition(self, bug_id: str) -> Dict[str, Any]:
         """Load a bug definition from JSON file."""
-        bug_file = self.bugs_dir / f"{bug_id}.json"
+        bug_file = self.bugs_dir / "definitions" / f"{bug_id}.json"
         if not bug_file.exists():
             raise FileNotFoundError(f"Bug definition not found: {bug_file}")
 
@@ -33,7 +33,8 @@ class BugInjector:
 
     def list_bugs(self) -> List[str]:
         """List all available bug definitions."""
-        bug_files = sorted(self.bugs_dir.glob("BUG_*.json"))
+        definitions_dir = self.bugs_dir / "definitions"
+        bug_files = sorted(definitions_dir.glob("BUG_*.json"))
         bugs = []
         for bug_file in bug_files:
             with open(bug_file, 'r') as f:

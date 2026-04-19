@@ -17,9 +17,18 @@ bugs/
 ├── README.md              # This file
 ├── BUG_REGISTRY.md        # Catalog of all available bugs
 ├── inject.py              # Bug injection script
-├── BUG_001.json           # Bug definition files
-├── BUG_002.json
-└── ...
+├── definitions/           # Bug definition files
+│   ├── BUG_001.json
+│   ├── BUG_002.json
+│   └── ...
+├── tests/                 # Assembly test files
+│   ├── BUG_001_test.s
+│   ├── BUG_001_test_cfg.xml
+│   └── ...
+├── run_test.sh            # Single test runner
+├── run_all_tests.sh       # Run all tests
+├── generate_cfg.sh        # Generate single golden cfg
+└── generate_all_cfg.sh    # Generate all golden cfgs
 ```
 
 ## Quick Start
