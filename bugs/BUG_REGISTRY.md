@@ -5,47 +5,104 @@ This file catalogs all bugs available for injection into the RSD processor.
 ## Bug Types
 
 - **Functional**: Causes incorrect architectural state (wrong register values, memory corruption). Detectable by comparing register dumps against golden values.
-- **Microarchitectural**: Only manifests under specific pipeline timing conditions. May be functional when triggered, but hard to trigger from software. Best tested with UVM/directed RTL tests.
+- **Microarchitectural (Demonstration Only)**: Only manifests under specific pipeline timing conditions that cannot be reliably triggered from software. Assembly tests serve as demonstrations but do not reliably catch these bugs. Requires UVM/directed RTL tests or formal verification.
 
 ## Bug List
 
-| ID | Name | Type | Category | File | Description | Severity |
-|----|------|------|----------|------|-------------|----------|
-| BUG_001 | ALU_SUB_BUG | Functional | IntegerExec | IntALU.sv | Missing add-one in subtraction | High |
-| BUG_002 | BYPASS_PRIORITY_INVERSION | Functional | Bypass | BypassNetwork.sv | Stale data forwarded (EX/WB priority swap) | High |
-| BUG_003 | STORE_FORWARD_SHIFT_ERROR | Microarchitectural | Memory | LoadStoreUnit.sv | Wrong bit shift in store-to-load forwarding | Critical |
-| BUG_004 | SLT_SIGN_CONDITIONAL_SWAP | Functional | IntegerExec | IntALU.sv | SLT swaps operands when both have same sign | High |
-| BUG_005 | COMMIT_BOUNDARY_OFF_BY_ONE | Functional | Commit | CommitStage.sv | Off-by-one in instruction boundary detection | High |
-| BUG_006 | STORE_QUEUE_WRAP_AROUND | Microarchitectural | Memory | StoreQueue.sv | Pointer wrap-around off-by-one, entry leak | Medium |
+| ID | Name | Type | Category | File | Description | Severity | Testable |
+|----|------|------|----------|------|-------------|----------|----------|
+| BUG_001 | ALU_SUB_BUG | Functional | IntegerExec | IntALU.sv | Missing add-one in subtraction | High | ✓ |
+| BUG_002 | BYPASS_PRIORITY_INVERSION | Functional | Bypass | BypassNetwork.sv | Stale data forwarded (EX/WB priority swap) | High | ✓ |
+| BUG_003 | STORE_FORWARD_SHIFT_ERROR | Microarchitectural | Memory | LoadStoreUnit.sv | Wrong bit shift in store-to-load forwarding | Critical | ✗ Demo only |
+| BUG_004 | SLT_SIGN_CONDITIONAL_SWAP | Functional | IntegerExec | IntALU.sv | SLT swaps operands when both have same sign | High | ✓ |
+| BUG_005 | COMMIT_BOUNDARY_OFF_BY_ONE | Functional | Commit | CommitStage.sv | Off-by-one in instruction boundary detection | High | ✓ |
+| BUG_006 | STORE_QUEUE_WRAP_AROUND | Microarchitectural | Memory | StoreQueue.sv | Pointer wrap-around off-by-one, entry leak | Medium | ✗ Demo only |
 
 ## Summary
 
 - **Total**: 6 bugs
-- **Functional**: 4 (BUG_001, 002, 004, 005) — testable with assembly + register comparison
-- **Microarchitectural**: 2 (BUG_003, 006) — needs UVM unit tests or specific pipeline timing
+- **Reliably Testable**: 4 (BUG_001, 002, 004, 005) — caught by assembly tests with register comparison
+- **Demonstration Only**: 2 (BUG_003, 006) — require UVM/RTL tests, assembly tests demonstrate concept only
 
-## Notes
+## Bug Details
 
-- BUG_003: `ShiftForwardedData` only called during store-to-load forwarding. Back-to-back sw/lb in assembly doesn't reliably trigger it because stores may commit to cache before loads execute. Needs LSU UVM test.
-- BUG_004: SLT comparison inverts when both operands have same sign bit. Same-sign comparisons fail, mixed-sign work correctly. Subtle conditional bug.
-- BUG_006: Pointer off-by-one on wrap-around. Only triggers when store queue wraps, which requires enough in-flight stores. May cause functional errors if triggered.
+### Reliably Testable Bugs (✓)
 
-## Removed Bugs
+These bugs are **caught by assembly tests** and produce wrong register values:
 
-- BUG_004 (old): READY_BIT_BYPASS_RACE - Performance only, no functional impact
-- BUG_008 (old): BYPASS_CLEAR_ON_STALL - Performance only, triggers replay but no wrong data
+- **BUG_001**: Subtraction always wrong (missing +1 in two's complement)
+- **BUG_002**: Stale data forwarded (wrong bypass priority)
+- **BUG_004**: SLT comparison inverted for same-sign operands
+- **BUG_005**: Commits wrong number of instructions (off-by-one)
+
+### Demonstration Only Bugs (✗)
+
+These bugs **cannot be reliably caught** by assembly tests due to timing dependencies:
+
+#### BUG_003: Store-to-Load Forwarding Shift Error
+- **Why not testable**: Only triggers when store is in queue AND load forwards from it
+- **Problem**: In assembly tests, stores commit to cache before loads execute
+- **Result**: Forwarding path never used, bug never triggered
+- **Assembly test**: Demonstrates the intended test scenario but doesn't catch the bug
+- **To actually test**: Requires UVM testbench that controls store queue commit timing
+
+#### BUG_006: Store Queue Wrap-Around
+- **Why not testable**: Only triggers when store queue fills and wraps around
+- **Problem**: Assembly tests don't generate enough store pressure
+- **Result**: Queue never fills, wrap-around never happens
+- **Assembly test**: Demonstrates store-heavy code but doesn't fill the queue
+- **To actually test**: Requires directed RTL test that fills queue to capacity
+
+## Verification Requirements
+
+### For Testable Bugs (BUG_001, 002, 004, 005)
+```bash
+# Inject bug
+python bugs/inject.py --bugs BUG_001 --rsd-root ..
+
+# Run test (will fail with NG)
+./run_test.sh BUG_001_test
+
+# Restore
+python bugs/inject.py --restore --rsd-root ..
+```
+
+### For Demonstration Bugs (BUG_003, 006)
+
+**Assembly tests demonstrate the concept but do NOT catch the bugs.**
+
+To actually verify these bugs, you need:
+
+1. **UVM Testbench**
+   - Control pipeline timing
+   - Force specific microarchitectural states
+   - Monitor internal signals
+
+2. **Directed RTL Tests**
+   - Constrained random testing
+   - Coverage-driven verification
+   - Specific scenario generation
+
+3. **Formal Verification**
+   - Prove correctness of forwarding logic
+   - Verify pointer arithmetic
+   - Check all corner cases
 
 ## Usage
 
 ```bash
+# List all bugs
+python bugs/inject.py --list
+
 # Inject single bug
 python bugs/inject.py --bugs BUG_001 --rsd-root ..
 
 # Inject multiple bugs
 python bugs/inject.py --bugs BUG_001 BUG_002 --rsd-root ..
 
-# List all available bugs
-python bugs/inject.py --list
+# Test a bug (only works for testable bugs)
+cd bugs
+./run_test.sh BUG_001_test
 
 # Restore clean files
 python bugs/inject.py --restore --rsd-root ..
@@ -53,6 +110,11 @@ python bugs/inject.py --restore --rsd-root ..
 
 ## Adding New Bugs
 
-1. Create a new bug definition file: `bugs/BUG_XXX.json`
-2. Add entry to this registry
-3. Test the bug injection: `python bugs/inject.py --bugs BUG_XXX --dry-run`
+1. Create bug definition: `bugs/BUG_XXX.json`
+2. Create assembly test: `bugs/tests/BUG_XXX_test.s`
+3. Generate golden cfg: `./generate_cfg.sh BUG_XXX_test.s`
+4. Test injection: `python bugs/inject.py --bugs BUG_XXX --dry-run`
+5. Verify detection: `./run_test.sh BUG_XXX_test`
+6. Update this registry
+
+**Important**: Mark as "Demonstration Only" if the bug requires specific timing conditions that assembly tests cannot reliably create.
