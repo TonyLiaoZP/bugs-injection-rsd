@@ -1,16 +1,21 @@
 {
   "id": "BUG_006",
-  "name": "COMMIT_BOUNDARY_OFF_BY_ONE",
-  "category": "Commit",
-  "description": "Off-by-one error in instruction boundary detection during commit",
-  "severity": "High",
-  "file": "Processor/Src/Pipeline/CommitStage.sv",
+  "name": "STORE_QUEUE_WRAP_AROUND",
+  "category": "Memory",
+  "description": "Incorrect store queue pointer wrap-around calculation",
+  "severity": "Medium",
+  "file": "Processor/Src/LoadStoreUnit/StoreQueue.sv",
   "patches": [
     {
-      "line": 32,
-      "original": "        if (i < finishedOpNum && last[i]) begin",
-      "buggy": "        if (i <= finishedOpNum && last[i]) begin"
+      "line": 82,
+      "original": "                port.allocatedStoreQueuePtr[i] = ",
+      "buggy": "                port.allocatedStoreQueuePtr[i] = "
+    },
+    {
+      "line": 83,
+      "original": "                    tailPtr + pushCount - STORE_QUEUE_ENTRY_NUM;",
+      "buggy": "                    tailPtr + pushCount - STORE_QUEUE_ENTRY_NUM + 1;"
     }
   ],
-  "notes": "Changes < to <=, allowing commit logic to examine one entry beyond valid range. Can cause incorrect instruction boundary detection and commit more or fewer ops than intended, leading to architectural state corruption."
+  "notes": "Adds +1 to wrap-around calculation, causing store queue pointer to skip an entry when wrapping. Results in store queue entry leaks and potential memory ordering violations."
 }

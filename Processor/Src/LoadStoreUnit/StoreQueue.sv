@@ -79,8 +79,8 @@ module StoreQueue(
             end
             else begin
                 // Out of range of store queue
-                port.allocatedStoreQueuePtr[i] = 
-                    tailPtr + pushCount - STORE_QUEUE_ENTRY_NUM;
+                                port.allocatedStoreQueuePtr[i] = 
+                                        tailPtr + pushCount - STORE_QUEUE_ENTRY_NUM + 1;
             end
             pushCount += port.allocateStoreQueue[i];
         end

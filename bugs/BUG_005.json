@@ -1,16 +1,16 @@
 {
   "id": "BUG_005",
-  "name": "SLT_SIGN_CONDITIONAL_SWAP",
-  "category": "Execution",
-  "description": "SLT comparison swaps operands when both have same sign bit",
+  "name": "COMMIT_BOUNDARY_OFF_BY_ONE",
+  "category": "Commit",
+  "description": "Off-by-one error in instruction boundary detection during commit",
   "severity": "High",
-  "file": "Processor/Src/ExecUnit/IntALU.sv",
+  "file": "Processor/Src/Pipeline/CommitStage.sv",
   "patches": [
     {
-      "line": 130,
-      "original": "                `Logic( { 31'h0, ( signedOpA < signedOpB) } )",
-      "buggy": "                `Logic( { 31'h0, ( (signedOpA[31] == signedOpB[31]) ? (signedOpB < signedOpA) : (signedOpA < signedOpB) ) } )"
+      "line": 32,
+      "original": "        if (i < finishedOpNum && last[i]) begin",
+      "buggy": "        if (i <= finishedOpNum && last[i]) begin"
     }
   ],
-  "notes": "When both operands have the same sign (both positive or both negative), the comparison is inverted (B < A instead of A < B). Mixed-sign comparisons work correctly. This creates subtle bugs in sorting, bounds checking, and conditional logic that only manifest with specific operand combinations."
+  "notes": "Changes < to <=, allowing commit logic to examine one entry beyond valid range. Can cause incorrect instruction boundary detection and commit more or fewer ops than intended, leading to architectural state corruption."
 }

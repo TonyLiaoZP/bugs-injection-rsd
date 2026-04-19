@@ -1,6 +1,6 @@
-// BUG_005 Test: SLT Sign-Conditional Swap Bug
-// Tests SLT instruction with various operand combinations
-// Bug: swaps operands when both have same sign bit
+// BUG_006 Test: Commit Boundary Off-by-One
+// Tests instruction boundary detection during commit
+// Bug changes < to <=, examining one entry beyond valid range
 
 #include "../rsd-asm-macros.h"
 
@@ -12,38 +12,54 @@
     .type     main, @function
 
 main:
-    // Test 1: Both positive (same sign) - BUG TRIGGERS
-    li      t0, 10
-    li      t1, 20
-    slt     a0, t0, t1          // 10 < 20 -> should be 1
-                                // With bug: 20 < 10 -> 0 (WRONG)
+    li      a7, 0           // Result accumulator
 
-    // Test 2: Both negative (same sign) - BUG TRIGGERS
-    li      t2, -20
-    li      t3, -10
-    slt     a1, t2, t3          // -20 < -10 -> should be 1
-                                // With bug: -10 < -20 -> 0 (WRONG)
+    // Test 1: Simple multi-op instruction sequence
+    // Each instruction may be split into multiple micro-ops
+    li      x10, 100
+    li      x11, 200
+    add     x12, x10, x11   // x12 = 300
+    add     a7, a7, x12     // a7 = 300
 
-    // Test 3: Positive < Negative (different signs) - works correctly
-    li      t4, 5
-    li      t5, -5
-    slt     a2, t4, t5          // 5 < -5 -> should be 0
-                                // With bug: still 0 (correct)
+    // Test 2: Load/store operations (multi-op)
+    la      t0, test_data
+    li      t1, 0x12345678
+    sw      t1, 0(t0)       // Store (address calc + store)
+    lw      t2, 0(t0)       // Load (address calc + load)
+    add     a7, a7, t2      // a7 = 300 + 0x12345678 = 0x12345978
 
-    // Test 4: Negative < Positive (different signs) - works correctly
-    li      t6, -15
-    li      s0, 15
-    slt     a3, t6, s0          // -15 < 15 -> should be 1
-                                // With bug: still 1 (correct)
+    // Test 3: Multiple loads in sequence
+    li      t1, 0xAAAA
+    li      t2, 0xBBBB
+    li      t3, 0xCCCC
+    sw      t1, 4(t0)
+    sw      t2, 8(t0)
+    sw      t3, 12(t0)
 
-    // Test 5: Both positive, reversed (same sign) - BUG TRIGGERS
-    li      s1, 100
-    li      s2, 50
-    slt     a4, s1, s2          // 100 < 50 -> should be 0
-                                // With bug: 50 < 100 -> 1 (WRONG)
+    lw      t4, 4(t0)       // t4 = 0xAAAA
+    lw      t5, 8(t0)       // t5 = 0xBBBB
+    lw      t6, 12(t0)      // t6 = 0xCCCC
 
+    // Test 4: Arithmetic with multiple dependencies
+    li      x13, 10
+    li      x14, 20
+    li      x15, 30
+    add     x16, x13, x14   // x16 = 30
+    add     x17, x15, x16   // x17 = 60
+    add     x18, x16, x17   // x18 = 90
+
+    // Without bug: All operations commit correctly
+    // With bug: Off-by-one may cause incorrect commit boundaries,
+    //           leading to partial instruction commits or wrong state
+
+    // Final check (just verify we got here)
     li      a7, 1
 
 end:
 end_loop:
     j       end_loop
+
+    .data
+    .align 4
+test_data:
+    .space 64

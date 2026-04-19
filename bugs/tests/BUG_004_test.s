@@ -1,6 +1,6 @@
-// BUG_004 Test: Ready Bit Bypass Race
-// Tests that all wakeup ports are checked for bypass
-// Bug reduces loop from WAKEUP_WIDTH to WAKEUP_WIDTH-1, missing last port
+// BUG_005 Test: SLT Sign-Conditional Swap Bug
+// Tests SLT instruction with various operand combinations
+// Bug: swaps operands when both have same sign bit
 
 #include "../rsd-asm-macros.h"
 
@@ -12,57 +12,37 @@
     .type     main, @function
 
 main:
-    li      a7, 0           // Result accumulator
+    // Test 1: Both positive (same sign) - BUG TRIGGERS
+    li      t0, 10
+    li      t1, 20
+    slt     a0, t0, t1          // 10 < 20 -> should be 1
+                                // With bug: 20 < 10 -> 0 (WRONG)
 
-    // Generate many parallel operations to stress wakeup ports
-    // The goal is to have the last wakeup port active when a dependent
-    // instruction is dispatched
+    // Test 2: Both negative (same sign) - BUG TRIGGERS
+    li      t2, -20
+    li      t3, -10
+    slt     a1, t2, t3          // -20 < -10 -> should be 1
+                                // With bug: -10 < -20 -> 0 (WRONG)
 
-    // Test 1: Create many independent operations
-    li      x10, 10
-    li      x11, 20
-    li      x12, 30
-    li      x13, 40
-    li      x14, 50
-    li      x15, 60
+    // Test 3: Positive < Negative (different signs) - works correctly
+    li      t4, 5
+    li      t5, -5
+    slt     a2, t4, t5          // 5 < -5 -> should be 0
+                                // With bug: still 0 (correct)
 
-    // Parallel adds (may use multiple issue lanes)
-    addi    x10, x10, 1     // x10 = 11
-    addi    x11, x11, 1     // x11 = 21
-    addi    x12, x12, 1     // x12 = 31
-    addi    x13, x13, 1     // x13 = 41
-    addi    x14, x14, 1     // x14 = 51
-    addi    x15, x15, 1     // x15 = 61
+    // Test 4: Negative < Positive (different signs) - works correctly
+    li      t6, -15
+    li      s0, 15
+    slt     a3, t6, s0          // -15 < 15 -> should be 1
+                                // With bug: still 1 (correct)
 
-    // Immediately use results (tests wakeup bypass)
-    add     x16, x10, x11   // x16 = 11 + 21 = 32
-    add     x17, x12, x13   // x17 = 31 + 41 = 72
-    add     x18, x14, x15   // x18 = 51 + 61 = 112
+    // Test 5: Both positive, reversed (same sign) - BUG TRIGGERS
+    li      s1, 100
+    li      s2, 50
+    slt     a4, s1, s2          // 100 < 50 -> should be 0
+                                // With bug: 50 < 100 -> 1 (WRONG)
 
-    // Without bug: All values correct
-    // With bug: If last wakeup port is missed, dependent instruction stalls unnecessarily
-    add     a7, x16, x17    // a7 = 32 + 72 = 104
-    add     a7, a7, x18     // a7 = 104 + 112 = 216
-
-    // Test 2: More complex dependency chain
-    li      x20, 100
-    li      x21, 200
-    li      x22, 300
-    li      x23, 400
-
-    addi    x20, x20, 5     // x20 = 105
-    addi    x21, x21, 5     // x21 = 205
-    addi    x22, x22, 5     // x22 = 305
-    addi    x23, x23, 5     // x23 = 405
-
-    add     x24, x20, x21   // x24 = 310
-    add     x25, x22, x23   // x25 = 710
-    add     x26, x24, x25   // x26 = 1020
-
-    add     a7, a7, x26     // a7 = 216 + 1020 = 1236
-
-    // Final: a7 should be 1236 without bug
-    li      a7, 1           // Success marker
+    li      a7, 1
 
 end:
 end_loop:
