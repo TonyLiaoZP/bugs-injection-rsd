@@ -1,16 +1,16 @@
 {
   "id": "BUG_005",
-  "name": "SHIFTER_ASR_OFF_BY_ONE",
+  "name": "SLT_SIGN_CONDITIONAL_SWAP",
   "category": "Execution",
-  "description": "Arithmetic shift right uses wrong shift amount (off by one)",
+  "description": "SLT comparison swaps operands when both have same sign bit",
   "severity": "High",
-  "file": "Processor/Src/ExecUnit/Shifter.sv",
+  "file": "Processor/Src/ExecUnit/IntALU.sv",
   "patches": [
     {
-      "line": 342,
-      "original": "            unifiedShiftAmount = shiftAmount;",
-      "buggy": "            unifiedShiftAmount = shiftAmount + 1;"
+      "line": 130,
+      "original": "                `Logic( { 31'h0, ( signedOpA < signedOpB) } )",
+      "buggy": "                `Logic( { 31'h0, ( (signedOpA[31] == signedOpB[31]) ? (signedOpB < signedOpA) : (signedOpA < signedOpB) ) } )"
     }
   ],
-  "notes": "Adds 1 to shift amount in arithmetic shift right operation. All ASR/SRAI instructions produce wrong results (shifted one extra bit). Affects signed arithmetic and bit manipulation operations."
+  "notes": "When both operands have the same sign (both positive or both negative), the comparison is inverted (B < A instead of A < B). Mixed-sign comparisons work correctly. This creates subtle bugs in sorting, bounds checking, and conditional logic that only manifest with specific operand combinations."
 }
