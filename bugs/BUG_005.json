@@ -1,16 +1,16 @@
 {
   "id": "BUG_005",
-  "name": "RECOVERY_PHASE_SKIP",
-  "category": "Control",
-  "description": "Recovery manager skips recovery phase transition under specific conditions",
-  "severity": "Critical",
-  "file": "Processor/Src/Recovery/RecoveryManager.sv",
+  "name": "SHIFTER_ASR_OFF_BY_ONE",
+  "category": "Execution",
+  "description": "Arithmetic shift right uses wrong shift amount (off by one)",
+  "severity": "High",
+  "file": "Processor/Src/ExecUnit/Shifter.sv",
   "patches": [
     {
-      "line": 78,
-      "original": "        if (!port.rst) begin",
-      "buggy": "        if (port.rst) begin"
+      "line": 342,
+      "original": "            unifiedShiftAmount = shiftAmount;",
+      "buggy": "            unifiedShiftAmount = shiftAmount + 1;"
     }
   ],
-  "notes": "Inverts reset condition logic, causing state updates to occur during reset and be blocked during normal operation. Recovery state machine gets stuck, preventing proper branch misprediction recovery and exception handling."
+  "notes": "Adds 1 to shift amount in arithmetic shift right operation. All ASR/SRAI instructions produce wrong results (shifted one extra bit). Affects signed arithmetic and bit manipulation operations."
 }

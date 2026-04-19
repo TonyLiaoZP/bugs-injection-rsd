@@ -16,7 +16,7 @@ This file catalogs all bugs available for injection into the RSD processor.
 | BUG_002 | BYPASS_PRIORITY_INVERSION | Functional | Bypass | BypassNetwork.sv | Stale data forwarded (EX/WB priority swap) | High |
 | BUG_003 | STORE_FORWARD_SHIFT_ERROR | Microarchitectural | Memory | LoadStoreUnit.sv | Wrong bit shift in store-to-load forwarding | Critical |
 | BUG_004 | READY_BIT_BYPASS_RACE | Performance | Scheduler | ReadyBitTable.sv | Misses last wakeup port bypass, 1-cycle stall | Medium |
-| BUG_005 | RECOVERY_PHASE_SKIP | Functional | Control | RecoveryManager.sv | Inverted reset breaks recovery state machine | Critical |
+| BUG_005 | SHIFTER_ASR_OFF_BY_ONE | Functional | Execution | Shifter.sv | Arithmetic shift right off-by-one error | High |
 | BUG_006 | COMMIT_BOUNDARY_OFF_BY_ONE | Functional | Commit | CommitStage.sv | Off-by-one in instruction boundary detection | High |
 | BUG_007 | STORE_QUEUE_WRAP_AROUND | Microarchitectural | Memory | StoreQueue.sv | Pointer wrap-around off-by-one, entry leak | Medium |
 | BUG_008 | BYPASS_CLEAR_ON_STALL | Functional | Bypass | BypassNetwork.sv | Bypass data cleared during stalls | High |
@@ -24,9 +24,9 @@ This file catalogs all bugs available for injection into the RSD processor.
 ## Summary
 
 - **Total**: 8 bugs
-- **Functional**: 5 (BUG_001, 002, 005, 006, 008) — testable with assembly + register comparison
+- **Functional**: 6 (BUG_001, 002, 005, 006, 008) — testable with assembly + register comparison
 - **Performance**: 1 (BUG_004) — requires IPC/cycle-count comparison
-- **Microarchitectural**: 2 (BUG_003, 007) — needs UVM unit tests or specific pipeline timing
+- **Microarchitectural**: 1 (BUG_003, 007) — needs UVM unit tests or specific pipeline timing
 
 ## Notes
 
