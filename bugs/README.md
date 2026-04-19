@@ -54,17 +54,30 @@ python bugs/inject.py --restore
 ### 1. Inject bugs before compilation
 ```bash
 cd /path/to/rsd
-python bugs/inject.py --bugs BUG_001
+python bugs/inject.py --bugs BUG_001 --rsd-root ..
 cd Processor/Src
-make run
+make -f Makefile.verilator.mk
 ```
 
 ### 2. Test your bug detection method
 The RTL now contains the injected bug(s) with no hints or markers.
 
+Run the assembly test to verify the bug is caught:
+```bash
+cd bugs
+./run_test.sh BUG_001_test
+```
+
+Expected output:
+- **Without bug**: `OK ... registers have correct values`
+- **With bug injected**: `NG ... some registers have incorrect values`
+
+For reliably testable bugs (BUG_001, 002, 004, 005), the test will fail (NG).
+For demonstration-only bugs (BUG_003, 006), the test may pass even with bug injected.
+
 ### 3. Restore clean files
 ```bash
-python bugs/inject.py --restore
+python bugs/inject.py --restore --rsd-root ..
 ```
 
 ## Bug Definition Format
@@ -127,38 +140,14 @@ Each bug is defined in a JSON file (`bugs/BUG_XXX.json`):
 
 5. **Verify the bug**
    ```bash
-   python bugs/inject.py --bugs BUG_XXX
+   python bugs/inject.py --bugs BUG_XXX --rsd-root ..
    cd Processor/Src
-   make run
-   # Verify the bug manifests as expected
-   python bugs/inject.py --restore
+   make -f Makefile.verilator.mk
+   cd ../../bugs
+   ./run_test.sh BUG_XXX_test
+   # Verify the bug is caught (test should fail with NG)
+   python bugs/inject.py --restore --rsd-root ..
    ```
-
-## Integration with Makefile
-
-You can integrate bug injection into your build process:
-
-```makefile
-# In Processor/Src/Makefile
-BUGS ?=
-
-.PHONY: inject-bugs restore-bugs
-
-inject-bugs:
-ifdef BUGS
-	python ../../bugs/inject.py --bugs $(BUGS)
-endif
-
-restore-bugs:
-	python ../../bugs/inject.py --restore
-
-run-with-bugs: inject-bugs run restore-bugs
-```
-
-Usage:
-```bash
-make run-with-bugs BUGS="BUG_001 BUG_002"
-```
 
 ## Best Practices
 
