@@ -51,7 +51,7 @@ These bugs **cannot be reliably caught** by assembly tests due to timing depende
 - **Problem**: Assembly tests don't generate enough store pressure
 - **Result**: Queue never fills, wrap-around never happens
 - **Assembly test**: Demonstrates store-heavy code but doesn't fill the queue
-- **To actually test**: Requires directed RTL test that fills queue to capacity
+- **To actually test**: `./bugs/run_bug006_unit_test.sh` (see `StoreQueueWrap/README.md`)
 
 ## Verification Requirements
 
@@ -77,7 +77,11 @@ To actually verify these bugs, you need:
    - `Processor/Src/Verification/UnitTest/StoreForward/` — StoreQueue + LoadStoreUnit
    - Run: `./bugs/run_bug003_unit_test.sh` (Verilator by default; `--questa` for ModelSim/Questa)
 
-2. **UVM Testbench** (optional, broader coverage)
+2. **Directed RTL unit test (BUG_006)**
+   - `Processor/Src/Verification/UnitTest/StoreQueueWrap/` — StoreQueue allocation only
+   - Run: `./bugs/run_bug006_unit_test.sh` (Verilator; `--with-bug` must fail)
+
+3. **UVM Testbench** (optional, broader coverage)
    - Control pipeline timing
    - Force specific microarchitectural states
    - Monitor internal signals

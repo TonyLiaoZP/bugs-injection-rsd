@@ -7,12 +7,7 @@
   "file": "Processor/Src/LoadStoreUnit/StoreQueue.sv",
   "patches": [
     {
-      "line": 82,
-      "original": "                port.allocatedStoreQueuePtr[i] = ",
-      "buggy": "                port.allocatedStoreQueuePtr[i] = "
-    },
-    {
-      "line": 83,
+      "line": 81,
       "original": "                    tailPtr + pushCount - STORE_QUEUE_ENTRY_NUM;",
       "buggy": "                    tailPtr + pushCount - STORE_QUEUE_ENTRY_NUM + 1;"
     }
