@@ -14,8 +14,6 @@ import OpFormatTypes::*;
 import LoadStoreUnitTypes::*;
 import MemoryMapTypes::*;
 
-
-
 module StoreQueue(
     LoadStoreUnitIF.StoreQueue port,
     RecoveryManagerIF.StoreQueue recovery
@@ -102,6 +100,15 @@ module StoreQueue(
     // The address part of a SQ.
     StoreQueueAddrEntry storeQueue[STORE_QUEUE_ENTRY_NUM-1:0];
 
+`ifdef RSD_FUNCTIONAL_SIMULATION_VERILATOR
+    // Cycle-sim only: mirror SQ addr fields (packed struct array layout workaround).
+    logic sqFinished_r[STORE_QUEUE_ENTRY_NUM-1:0];
+    logic sqRegValid_r[STORE_QUEUE_ENTRY_NUM-1:0];
+    LSQ_BlockAddrPath sqBlockAddr_r[STORE_QUEUE_ENTRY_NUM-1:0];
+    LSQ_BlockWordEnablePath sqWordWE_r[STORE_QUEUE_ENTRY_NUM-1:0];
+    LSQ_WordByteEnablePath sqByteWE_r[STORE_QUEUE_ENTRY_NUM-1:0];
+`endif
+
     logic  executeStore[STORE_ISSUE_WIDTH];
     LSQ_BlockAddrPath executedStoreAddr[STORE_ISSUE_WIDTH];
     LSQ_BlockWordEnablePath executedStoreWordWE[STORE_ISSUE_WIDTH];
@@ -117,6 +124,13 @@ module StoreQueue(
                 storeQueue[i].address <= '0;
                 storeQueue[i].wordWE <= '0;
                 storeQueue[i].byteWE <= '0;
+`ifdef RSD_FUNCTIONAL_SIMULATION_VERILATOR
+                sqFinished_r[i] <= FALSE;
+                sqRegValid_r[i] <= FALSE;
+                sqBlockAddr_r[i] <= '0;
+                sqWordWE_r[i] <= '0;
+                sqByteWE_r[i] <= '0;
+`endif
             end
         end
         else begin
@@ -127,12 +141,22 @@ module StoreQueue(
                     storeQueue[ executedStoreQueuePtrByStore[i] ].address <= executedStoreAddr[i];
                     storeQueue[ executedStoreQueuePtrByStore[i] ].wordWE <= executedStoreWordWE[i];
                     storeQueue[ executedStoreQueuePtrByStore[i] ].byteWE <= executedStoreByteWE[i];
+`ifdef RSD_FUNCTIONAL_SIMULATION_VERILATOR
+                    sqRegValid_r[executedStoreQueuePtrByStore[i]] <= executedStoreRegValid[i];
+                    sqFinished_r[executedStoreQueuePtrByStore[i]] <= executedStoreCondEnabled[i];
+                    sqBlockAddr_r[executedStoreQueuePtrByStore[i]] <= executedStoreAddr[i];
+                    sqWordWE_r[executedStoreQueuePtrByStore[i]] <= executedStoreWordWE[i];
+                    sqByteWE_r[executedStoreQueuePtrByStore[i]] <= executedStoreByteWE[i];
+`endif
                 end
             end
 
             for (int i = 0; i < RENAME_WIDTH; i++) begin
                 if (port.allocateStoreQueue[i]) begin
                     storeQueue[ port.allocatedStoreQueuePtr[i] ].finished <= FALSE;
+`ifdef RSD_FUNCTIONAL_SIMULATION_VERILATOR
+                    sqFinished_r[port.allocatedStoreQueuePtr[i]] <= FALSE;
+`endif
                 end
             end
         end
@@ -284,12 +308,21 @@ module StoreQueue(
         // a currently executed load.
         for (int i = 0; i < LOAD_ISSUE_WIDTH; i++) begin
             for (int j = 0; j < STORE_QUEUE_ENTRY_NUM; j++) begin
+`ifdef RSD_FUNCTIONAL_SIMULATION_VERILATOR
+                addrMatch[i][j] =
+                    sqFinished_r[j] &&
+                    port.executedLoadMemMapType[i] != MMT_ILLEGAL &&
+                    sqBlockAddr_r[j] == LSQ_ToBlockAddr(port.executedLoadAddr[i]) &&
+                    ((sqWordWE_r[j] & executedLoadWordRE[i]) != '0) &&
+                    ((sqByteWE_r[j] & executedLoadByteRE[i]) != '0);
+`else
                 addrMatch[i][j] =
                     storeQueue[j].finished &&
-                    port.executedLoadMemMapType[i] != MMT_ILLEGAL && 
+                    port.executedLoadMemMapType[i] != MMT_ILLEGAL &&
                     storeQueue[j].address == LSQ_ToBlockAddr(port.executedLoadAddr[i]) &&
                     ((storeQueue[j].wordWE & executedLoadWordRE[i]) != '0) &&
                     ((storeQueue[j].byteWE & executedLoadByteRE[i]) != '0);
+`endif
             end
         end
 
@@ -298,7 +331,11 @@ module StoreQueue(
             // ストアがwriteしてないバイトを、ロードがreadしようとした場合、
             // フォワーディングは失敗となる。
             if (pickedPtr[i] < STORE_QUEUE_ENTRY_NUM) begin
+`ifdef RSD_FUNCTIONAL_SIMULATION_VERILATOR
+                forwardMiss[i] = !sqRegValid_r[pickedPtr[i]] ||
+`else
                 forwardMiss[i] = !storeQueue[pickedPtr[i]].regValid ||
+`endif
                     ((~forwardedDataEntry[i].wordWE & executedLoadWordRE[i]) != '0) ||
                     ((~forwardedDataEntry[i].byteWE & executedLoadByteRE[i]) != '0);
                 forwardedLoadData[i] = forwardedDataEntry[i].data;

@@ -113,7 +113,7 @@ function automatic LSQ_WordByteEnablePath LSQ_ToWordByteEnable(
             byteEnable = 'b0011;
         end
         default: begin
-            byteEnable = '1;
+            byteEnable = {DATA_BYTE_WIDTH{1'b1}};
         end
     endcase
     

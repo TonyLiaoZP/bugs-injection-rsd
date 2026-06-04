@@ -170,31 +170,17 @@ output
 
         // Invalidate invalid grant.
         
-        // Implementation A: it is faster than B by 1 LUT, but its area is larger 
-        // than that of B by 22 LUTs.
-        if(tailPtr >= headPtr) begin
-            if(ENTRY_NUM + headPtr - tailPtr > shiftedGrant) begin
-                picked = 1'b0;
-            end
-        end 
-        else begin
-            if(headPtr - tailPtr > shiftedGrant) begin
-                picked = 1'b0;
-            end
-        end
-
-        /*
-        // Implementation B.
+        // Invalidate grants outside [headPtr, tailPtr).
         if(tailPtr >= headPtr) begin
             if(headPtr > grantPtr || grantPtr >= tailPtr) begin
                 picked = 1'b0;
             end
-        end begin
+        end
+        else begin
             if(headPtr > grantPtr && grantPtr >= tailPtr) begin
                 picked = 1'b0;
             end
         end
-        */
         
     end
 endmodule : CircularRangePicker

@@ -73,7 +73,11 @@ python bugs/inject.py --restore --rsd-root ..
 
 To actually verify these bugs, you need:
 
-1. **UVM Testbench**
+1. **Directed RTL unit test (BUG_003)**
+   - `Processor/Src/Verification/UnitTest/StoreForward/` — StoreQueue + LoadStoreUnit
+   - Run: `./bugs/run_bug003_unit_test.sh` (Verilator by default; `--questa` for ModelSim/Questa)
+
+2. **UVM Testbench** (optional, broader coverage)
    - Control pipeline timing
    - Force specific microarchitectural states
    - Monitor internal signals
